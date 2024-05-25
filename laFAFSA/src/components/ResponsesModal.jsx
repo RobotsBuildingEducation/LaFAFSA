@@ -17,8 +17,15 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { database } from "../database/setup";
+import { lang } from "../utils/utils";
 
-const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
+const ResponsesModal = ({
+  show,
+  handleClose,
+  uniqueId,
+  loadResponses,
+  language,
+}) => {
   const [responses, setResponses] = useState([]);
   const [filteredResponses, setFilteredResponses] = useState([]);
   const [selectedResponse, setSelectedResponse] = useState(null);
@@ -101,15 +108,15 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
   return (
     <Modal show={show} onHide={handleClose} centered fullscreen>
       <Modal.Header closeButton>
-        <Modal.Title>Saved Responses</Modal.Title>
+        <Modal.Title>{lang[language].savedResponses}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {!selectedResponse ? (
           <>
-            <label>&nbsp;Filter</label>
+            <label>&nbsp;{lang[language].filter}</label>
             <InputGroup className="mb-3">
               <FormControl
-                placeholder="Filter by title, content or date (M/D/Y)"
+                placeholder={lang[language].filterPlaceholder}
                 value={filterText}
                 onChange={(e) => filterResponses(e.target.value)}
               />
@@ -118,7 +125,7 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
         ) : (
           <Form>
             <Form.Group controlId="formEditTitle">
-              <Form.Label>Edit Title</Form.Label>
+              <Form.Label>{lang[language].editTitle}</Form.Label>
               <Form.Control
                 type="text"
                 value={editedTitle}
@@ -126,8 +133,11 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
               />
             </Form.Group>
             <br />
+            <b> {selectedResponse?.userMsg}</b>
+            <br />
+            <br />
             <Form.Group controlId="formEditContent">
-              <Form.Label>Edit Content</Form.Label>
+              <Form.Label>{lang[language].editContent}</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={12}
@@ -137,14 +147,14 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
             </Form.Group>
             <br />
             <Button variant="dark" onMouseDown={updateResponse}>
-              Save Changes
+              {lang[language].saveChanges}
             </Button>
             &nbsp; &nbsp;
             <Button
               variant="tertiary"
               onMouseDown={() => setSelectedResponse(null)}
             >
-              Cancel
+              {lang[language].cancel}
             </Button>
           </Form>
         )}
@@ -184,7 +194,7 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           display: "-webkit-box",
-                          // WebkitLineClamp: 3,
+                          WebkitLineClamp: 3,
                           WebkitBoxOrient: "vertical",
                         }}
                       >
@@ -207,7 +217,7 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
                           setEditedContent(response.content);
                         }}
                       >
-                        View
+                        {lang[language].view}
                       </Button>
                       &nbsp; &nbsp;
                       <Button
@@ -215,7 +225,7 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
                         size="sm"
                         onMouseDown={() => deleteResponse(response.id)}
                       >
-                        Delete
+                        {lang[language].delete}
                       </Button>
                     </div>
                   </Card.Body>
@@ -227,7 +237,7 @@ const ResponsesModal = ({ show, handleClose, uniqueId, loadResponses }) => {
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onMouseDown={handleClose}>
-          Close
+          {lang[language].close}
         </Button>
       </Modal.Footer>
     </Modal>

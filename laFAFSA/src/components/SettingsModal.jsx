@@ -9,8 +9,9 @@ import {
 } from "react-bootstrap";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { database } from "../database/setup";
+import { lang } from "../utils/utils";
 
-const SettingsModal = ({ show, handleClose, updateUserId }) => {
+const SettingsModal = ({ show, handleClose, updateUserId, language }) => {
   const [inputId, setInputId] = useState("");
   const [error, setError] = useState("");
   const [currentId, setCurrentId] = useState("");
@@ -30,11 +31,8 @@ const SettingsModal = ({ show, handleClose, updateUserId }) => {
 
   const handleSave = async () => {
     if (!isValidDID(inputId)) {
-      setError(
-        "Invalid DID. Please enter a DID starting with did:key, did:dht, or did:ion."
-      );
+      setError(lang[language].invalidDid);
       setAccountSwitchSuccess(false);
-
       return;
     }
 
@@ -56,7 +54,7 @@ const SettingsModal = ({ show, handleClose, updateUserId }) => {
       setError("");
     } catch (err) {
       console.error("Error checking user ID:", err);
-      setError("An error occurred. Please try again.");
+      setError(lang[language].errorOccurred);
       setAccountSwitchSuccess(false);
     }
   };
@@ -70,20 +68,18 @@ const SettingsModal = ({ show, handleClose, updateUserId }) => {
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Settings</Modal.Title>
+        <Modal.Title>{lang[language].title}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        👋&nbsp;You're using a decentralized identity to instantly launch inside
-        of social media. Keep this ID so you can share it across apps or
-        networks!
+        {lang[language].instructions}
         <br />
         <br />
         {accountSwitchSuccess && (
-          <Alert variant="success">Account switched successfully!</Alert>
+          <Alert variant="success">{lang[language].accountSwitched}</Alert>
         )}
         <Form>
           <Form.Group controlId="formCurrentUserId">
-            <Form.Label>Current User ID</Form.Label>
+            <Form.Label>{lang[language].currentUserId}</Form.Label>
             <InputGroup>
               <FormControl
                 type="text"
@@ -91,16 +87,16 @@ const SettingsModal = ({ show, handleClose, updateUserId }) => {
                 readOnly
               />
               <Button variant="outline-secondary" onMouseDown={handleCopy}>
-                {copySuccess ? "Copied!" : "Copy"}
+                {copySuccess ? lang[language].copied : lang[language].copy}
               </Button>
             </InputGroup>
           </Form.Group>
           <br />
           <Form.Group controlId="formUserId">
-            <Form.Label>Switch accounts</Form.Label>
+            <Form.Label>{lang[language].switchAccounts}</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter an ID to switch accounts"
+              placeholder={lang[language].enterId}
               value={inputId}
               onChange={(e) => setInputId(e.target.value)}
             />
@@ -110,17 +106,17 @@ const SettingsModal = ({ show, handleClose, updateUserId }) => {
       </Modal.Body>
       <Modal.Footer>
         <Button variant="dark" onMouseDown={handleSave}>
-          Switch
+          {lang[language].switch}
         </Button>
         <Button
           variant="link"
           href="https://robotsbuildingeducation.com"
           target="_blank"
         >
-          Visit RO.B.E
+          {lang[language].visit}
         </Button>
         <Button variant="tertiary" onMouseDown={handleClose}>
-          Close
+          {lang[language].close}
         </Button>
       </Modal.Footer>
     </Modal>

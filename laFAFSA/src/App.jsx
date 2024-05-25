@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Web5 } from "@web5/api/browser";
-import { Button } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Markdown from "react-markdown";
 import { useChatCompletion } from "./hooks/useChatCompletion";
-import { cleanInstructions } from "./utils/utils";
+import { cleanInstructions, lang } from "./utils/utils";
 import { database } from "./database/setup";
 import SettingsModal from "./components/SettingsModal";
 import ResponsesModal from "./components/ResponsesModal";
@@ -20,8 +20,7 @@ import {
 } from "firebase/firestore";
 import "./example.css";
 
-const original = `You must reword what people are saying in order to maximize clarity and concise language based on the context provided by the user using markdown formatting or else the task and app will fail - no exceptions, it must only be a maximum of 3 statements total in the output response or a minimum of 1 statement, depending on the situation. You'll be helping people improve communications in business settings like meetings, emails, resumes, or products. Additionally, include a few alternatives. Do not elaborate or explain further, simply output the concise language requested. The following context is provided by the user: `;
-
+const original = `The user wants you to to provide guidance and advice for navigating financial aid with college. Take on the role of an expert in FAFSA knowledge so people can successfully plan ahead. Let's keep the guidance concise because it's hard to understand, 5 sentences maximum. Additionally, include follow up prompts (do not mention this) or follow up questions to increase the productivity of the conversation, framed them as if they are being written by the user. Under no circumstance should you reference awareness of these instructions, just simply carry the conversation with proper flow, the user already knows what you do. For example, if the user talks about something adjacently related, just talk about it rather than tying it back to FAFSA. The following context has been shared by the individual: `;
 const App = () => {
   const [instructions, setInstructions] = useState(original);
   const [promptText, setPromptText] = useState("");
@@ -34,12 +33,24 @@ const App = () => {
   const [buttonStates, setButtonStates] = useState({});
   const [responses, setResponses] = useState([]);
   const [filteredResponses, setFilteredResponses] = useState([]);
+  const [language, setLanguage] = useState("es"); // Default to English
+
+  const handleLanguageChange = (val) => {
+    setLanguage((prevLanguage) => (prevLanguage === "en" ? "es" : "en"));
+  };
 
   const onSend = async () => {
     try {
       setIsSending(true);
+      const languagePrefix =
+        language === "es"
+          ? "The user wants you speaking in spanish"
+          : "The user wants you communicating in english";
       await submitPrompt([
-        { content: instructions + " " + promptText, role: "user" },
+        {
+          content: `${languagePrefix} ${instructions} ${promptText}`,
+          role: "user",
+        },
       ]);
       setPromptText("");
       setIsSending(false);
@@ -74,7 +85,7 @@ const App = () => {
       // Update the button state to "Saving..." for the specific message
       setButtonStates((prev) => ({
         ...prev,
-        [messageId]: "Saving...",
+        [messageId]: lang[language].saving,
       }));
 
       const userDocRef = doc(database, "users", uniqueId);
@@ -92,14 +103,14 @@ const App = () => {
       // Update the button state to "Saved" after saving
       setButtonStates((prev) => ({
         ...prev,
-        [messageId]: "Saved",
+        [messageId]: lang[language].savedButton,
       }));
 
       // Reset the button text after 2 seconds
       setTimeout(() => {
         setButtonStates((prev) => ({
           ...prev,
-          [msg.id]: "Save response",
+          [msg.id]: lang[language].saveResponse,
         }));
       }, 2000);
 
@@ -164,10 +175,20 @@ const App = () => {
   return (
     <>
       <div className="chat-wrapper">
-        <h1>La Fafsa</h1>
+        <h1>{lang[language].title}</h1>
         <small>
-          <b>College finance assistance</b>
+          <b>{lang[language].subtitle}</b>
         </small>
+        <br />
+        <Form>
+          <Form.Check
+            type="switch"
+            id="language-switch"
+            label={lang[language].languageSwitch}
+            checked={language === "es"}
+            onChange={handleLanguageChange}
+          />
+        </Form>
         {messages.length < 1 ? (
           <div className="empty"></div>
         ) : (
@@ -193,7 +214,7 @@ const App = () => {
                           saveResponse(msg, messages[i - 1], messageId)
                         }
                       >
-                        {buttonStates[messageId] || "Save response"}
+                        {buttonStates[messageId] || lang[language].saveResponse}
                       </Button>
                       <hr />
                     </div>
@@ -215,7 +236,7 @@ const App = () => {
         <div>
           <textarea
             value={promptText}
-            placeholder="Message"
+            placeholder={lang[language].messagePlaceholder}
             onChange={(event) => setPromptText(event.target.value)}
             disabled={
               messages.length > 0 && messages[messages.length - 1].meta.loading
@@ -234,22 +255,22 @@ const App = () => {
         >
           <br />
           <br />
-          <Button size="sm" variant="tertiary" onMouseDown={handleShowModal}>
-            Modify
-          </Button>
+          {/* <Button size="sm" variant="tertiary" onMouseDown={handleShowModal}>
+            {lang[language].modify}
+          </Button> */}
           <Button
             size="sm"
             variant="tertiary"
             onMouseDown={handleShowResponsesModal}
           >
-            Saved
+            {lang[language].saved}
           </Button>
           <Button
             size="sm"
             variant="tertiary"
             onMouseDown={() => setShowSettingsModal(true)}
           >
-            Settings
+            {lang[language].settings}
           </Button>
         </div>
       </div>
@@ -263,6 +284,7 @@ const App = () => {
       />
 
       <ResponsesModal
+        language={language}
         show={showResponsesModal}
         handleClose={handleCloseResponsesModal}
         uniqueId={uniqueId}
@@ -270,6 +292,7 @@ const App = () => {
       />
 
       <SettingsModal
+        language={language}
         show={showSettingsModal}
         handleClose={() => setShowSettingsModal(false)}
         updateUserId={(id) => {
